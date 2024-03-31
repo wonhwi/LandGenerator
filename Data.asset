@@ -1,0 +1,48 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 10f77b5da471f7a4fa7df31856a13ee0, type: 3}
+  m_Name: Data
+  m_EditorClassIdentifier: 
+  meshBaker: {fileID: 4927202797597381288, guid: c8285a8e675e94845a1ffaac55e4b8f4, type: 3}
+  metaCityDataList:
+  - cityType: 2
+    cameraData:
+      position: {x: 1736, y: 2033, z: 0}
+      rotation: {x: 90, y: 0, z: 0}
+  - cityType: 4
+    cameraData:
+      position: {x: 520, y: 3890, z: -432}
+      rotation: {x: 90, y: 0, z: 0}
+  - cityType: 8
+    cameraData:
+      position: {x: 1736, y: 2033, z: 0}
+      rotation: {x: 90, y: 0, z: 0}
+  - cityType: 16
+    cameraData:
+      position: {x: 1736, y: 2033, z: 0}
+      rotation: {x: 90, y: 0, z: 0}
+  - cityType: 32
+    cameraData:
+      position: {x: 1736, y: 2033, z: 0}
+      rotation: {x: 90, y: 0, z: 0}
+  - cityType: 64
+    cameraData:
+      position: {x: 1736, y: 2033, z: 0}
+      rotation: {x: 90, y: 0, z: 0}
+  - cityType: 128
+    cameraData:
+      position: {x: 1736, y: 2033, z: 0}
+      rotation: {x: 90, y: 0, z: 0}
+  - cityType: 256
+    cameraData:
+      position: {x: -91, y: 1830.5, z: -45}
+      rotation: {x: 90, y: 0, z: 0}
