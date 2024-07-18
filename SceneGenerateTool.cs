@@ -239,7 +239,7 @@ public class SceneGenerateTool : MonoBehaviour
 
     LandDictionary.Clear();
 
-    foreach (CityType value in Enum.GetValues(typeof(CityType)).Cast<CityType>())
+    foreach (CityType value in Enum.GetValues(typeof(CityType)))
     {
       if (value.Equals(CityType.None))
         continue;
@@ -258,8 +258,6 @@ public class SceneGenerateTool : MonoBehaviour
             var landData = json.ToObject<List<LandGeneratorData>>();
 
             LandDictionary.Add(value, landData.Where(n => n.Land_Code.Equals(value.ToString())).ToList());
-
-            Debug.Whi($"생성할 랜드 이름 : {value} = {landData.Where(n => n.Land_Code.Equals(value.ToString())).ToList().Count}");
           }
           else
           {
@@ -292,7 +290,7 @@ public class SceneGenerateTool : MonoBehaviour
 
       string sceneName = $"{this.scenePath}Scene_Land_{cityType}.unity";
 
-      Debug.Whi(sceneName + "생성 중");
+      Debug.Log(sceneName + "생성 중");
 
       //파일이 존재하면 삭제
       if (File.Exists(sceneName))
@@ -391,31 +389,4 @@ public class SceneGenerateTool : MonoBehaviour
 
     return new Vector3(coord_x, 0f, coord_y) * 24;
   }
-
-  
-
-  [ContextMenu("DisableWindow")]
-  private void DisableWindow()
-  {
-    EditorUtility.ClearProgressBar();
-  }
-
-  public static class Debug
-  {
-    [System.Diagnostics.Conditional("UNITY_EDITOR")]
-    public static void Whi(object message, UnityEngine.Object context = null) => UnityEngine.Debug.Log($"<color=#0ff0fc>{message}</color>", context);
-
-    [System.Diagnostics.Conditional("UNITY_EDITOR")]
-    public static void Log(object message)
-    {
-      UnityEngine.Debug.Log(message);
-    }
-
-    [System.Diagnostics.Conditional("UNITY_EDITOR")]
-    public static void LogError(object message)
-    {
-      UnityEngine.Debug.LogError(message);
-    }
-  }
-
 }
