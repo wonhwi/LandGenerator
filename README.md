@@ -2,7 +2,7 @@
 비효율적 리소스 낭비를 줄일수 있도록 만든 데이터 기반 타일링 오브젝트들을 배치하는 툴
 
 
-https://github.com/user-attachments/assets/2f1f7724-f714-481c-89fc-b74ce72e321b<br>
+https://github.com/user-attachments/assets/2f1f7724-f714-481c-89fc-b74ce72e321b
 
 
 ### 맵 생성 씬
