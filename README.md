@@ -2,7 +2,7 @@
 비효율적 리소스 낭비를 줄일수 있도록 만든 데이터 기반 타일링 오브젝트들을 배치하는 툴
 
 
-https://github.com/user-attachments/assets/2f1f7724-f714-481c-89fc-b74ce72e321b
+https://github.com/user-attachments/assets/2f1f7724-f714-481c-89fc-b74ce72e321b<br>
 https://www.youtube.com/watch?v=hqUPW-1G5ms&embeds_referring_euri=https%3A%2F%2Fwww.notion.so%2F&source_ve_path=MjM4NTE
 
 
