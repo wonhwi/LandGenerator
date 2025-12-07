@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: Data
   m_EditorClassIdentifier: 
   meshBaker: {fileID: 4927202797597381288, guid: c8285a8e675e94845a1ffaac55e4b8f4, type: 3}
+  NavMeshBaker: {fileID: 4399582120079626687, guid: 34cc820967275a145ae3bb35751293cb, type: 3}
   metaCityDataList:
   - cityType: 2
     cameraData:
@@ -46,3 +47,36 @@ MonoBehaviour:
     cameraData:
       position: {x: -91, y: 1830.5, z: -45}
       rotation: {x: 90, y: 0, z: 0}
+  navMeshDataList:
+  - type: 0
+    containName:
+    - tile_asphalt_noline_1x1
+  - type: 1
+    containName:
+    - tile_walkway_45
+    - tile_walkway_1x1
+    - tile_walkway_cut
+  - type: 2
+    containName:
+    - tile_1x1_boundary
+    - 1x1_wall
+    - 1X1_wall
+  - type: 3
+    containName:
+    - 1x1_center
+    - 1x1_middle
+    - 1x1_outer
+    - 2x1_center
+    - 2x1_middle
+    - 2x1_outer
+    - 2x2_center
+    - 2x2_middle
+    - 2x2_outer
+    - 3x3_center
+    - 3x3_middle
+    - 3x3_outer
+    - tile_base_rest
+  - type: 4
+    containName:
+    - map_water
+    - map_landmark

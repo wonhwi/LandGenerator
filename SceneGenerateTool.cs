@@ -14,14 +14,6 @@ using UnityEngine.SceneManagement;
 #region Enum, Class 
 
 [System.Flags]
-public enum Option
-{
-  None = 0,
-  NavMeshBake = 1 << 1,
-  MeshBake = 1 << 2,
-}
-
-[System.Flags]
 public enum CityType
 {
   None = 0,
@@ -38,8 +30,9 @@ public enum CityType
 
 public enum MeshBakeType
 {
-  All = 0,
-  SharedMaterial = 1
+  None = 0,   //사용안함
+  All = 1,    //모두 하나로 Combine
+  SharedMaterial = 2 //공용 재질사용하는 오브젝트들끼리 Combine
 }
 
 
@@ -88,52 +81,17 @@ public class SceneGenerateToolEditor : Editor
 
   public override void OnInspectorGUI()
   {
-    EditorGUILayout.BeginVertical(GUI.skin.box);
-    EditorGUILayout.LabelField($"랜드 구성 관련 데이터", EditorStyles.boldLabel);
-    EditorGUILayout.Space(10, true);
-    sceneGenerateTool.dataMap = EditorGUILayout.ObjectField("DataMap", sceneGenerateTool.dataMap, typeof(Data), false) as Data;
+    DrawDefaultInspector();
+
     EditorGUILayout.Space(10);
-    sceneGenerateTool.landDataPath = EditorGUILayout.TextField("랜드 데이터 파일 위치", sceneGenerateTool.landDataPath);
-    EditorGUILayout.EndVertical();
-    EditorGUILayout.Space(10, true);
-    EditorGUILayout.BeginVertical(GUI.skin.box);
-    EditorGUILayout.LabelField($"랜드 구성 관련 설정 옵션", EditorStyles.boldLabel);
-    EditorGUILayout.Space(10, true);
-    sceneGenerateTool.cityType = (CityType)EditorGUILayout.EnumFlagsField("생성할 MetaCity들을 선택해주세요 (다중 선택 가능)", sceneGenerateTool.cityType);
-    
-    sceneGenerateTool.option = (Option)EditorGUILayout.EnumFlagsField("씬 구성 완료 후 추가 사용 기능 설정", sceneGenerateTool.option);
-
-    if (!sceneGenerateTool.option.Equals(Option.None))
+    GUILayout.BeginHorizontal();
+    GUILayout.FlexibleSpace();
+    if (GUILayout.Button("랜드 구성", GUILayout.Width(200f), GUILayout.Height(40f)))
     {
-      EditorGUILayout.Space(10);
-      EditorGUILayout.LabelField($"랜드 구성 디테일 설정 옵션", EditorStyles.boldLabel);
-    }
-    
-    if (sceneGenerateTool.option.HasFlag(Option.NavMeshBake))
-    {
-      EditorGUILayout.LabelField($"개발 예정 기능", EditorStyles.boldLabel);
-    }
-
-    if (sceneGenerateTool.option.HasFlag(Option.MeshBake))
-    {
-      EditorGUILayout.HelpBox($"All 전부 한 Mesh로 묶기\nSharedMaterial = 같은 재질 끼리 묶기", MessageType.Info);
-
-      sceneGenerateTool.meshBakeType = (MeshBakeType)EditorGUILayout.EnumPopup("MeshBakeType", sceneGenerateTool.meshBakeType);
-    }
-    else
-    {
-      sceneGenerateTool.meshBakeType = default;
-    }
-
-    EditorGUILayout.EndVertical();
-    EditorGUILayout.Space(10);
-
-    if (GUILayout.Button("랜드 구성", GUILayoutOptionList))
-    {
-      
       sceneGenerateTool.StartGenerateScene().Forget();
     }
-
+    GUILayout.FlexibleSpace();
+    GUILayout.EndHorizontal();
   }
 }
 
@@ -144,24 +102,27 @@ public class SceneGenerateTool : MonoBehaviour
   
 
   private Dictionary<CityType, List<LandGeneratorData>> LandDictionary = new Dictionary<CityType, List<LandGeneratorData>>();
+  private Dictionary<string, (long landIdx, string landCode)> EmptyPathList = new Dictionary<string, (long, string)>();
+
 
   private Dictionary<string, GameObject> PrefabPathDictionary = new Dictionary<string, GameObject>();
 
 
+  [Header("랜드 구성 관련 데이터")]
   /// <summary>
   /// ScriptableObject Data
   /// </summary>
   public Data dataMap;
 
+  
+  [Header("랜드 구성 관련 설정 옵션")]
+
   /// <summary>
   /// 씬 구성 할 씬 타입들
   /// </summary>
+  [Tooltip("씬 구성 할 씬 타입들")]
   public CityType cityType;
 
-  /// <summary>
-  /// 씬 구성 완료 후 후처리 기능 사용 여부
-  /// </summary>
-  public Option option;
 
   public MeshBakeType meshBakeType;
 
@@ -183,14 +144,17 @@ public class SceneGenerateTool : MonoBehaviour
 
   public async UniTask StartGenerateScene()
   {
+    if (cityType == CityType.None)
+    {
+      Debug.LogError("City 선택을 해주세요");
+      return;
+    }
+
     await this.LoadPrefabData();
 
     await this.LoadData();
 
     await this.GenerateScene();
-    
-    //StaticOcclusionCulling.GenerateInBackground();    //오큘루전 컬링
-    //Lightmapping.Bake();                              //라이트맵 Bake
   }
 
   /// <summary>
@@ -200,6 +164,7 @@ public class SceneGenerateTool : MonoBehaviour
   public async UniTask LoadPrefabData()
   {
     //프리팹 관련 정보들 저장
+    EmptyPathList.Clear();
     PrefabPathDictionary.Clear();
 
     string[] prefabFileDirectory = Directory.GetFiles(prefabPath, "*.prefab", SearchOption.AllDirectories).Select(n => n.Replace(@"\", "/")).ToArray();
@@ -258,6 +223,8 @@ public class SceneGenerateTool : MonoBehaviour
             var landData = json.ToObject<List<LandGeneratorData>>();
 
             LandDictionary.Add(value, landData.Where(n => n.Land_Code.Equals(value.ToString())).ToList());
+
+            Debug.Log($"생성할 랜드 이름 : {value} = {landData.Where(n => n.Land_Code.Equals(value.ToString())).ToList().Count}");
           }
           else
           {
@@ -282,6 +249,11 @@ public class SceneGenerateTool : MonoBehaviour
   {
     Debug.LogError("GenerateScene");
 
+    if(LandDictionary.Keys.Count.Equals(0))
+    {
+      Debug.LogError("값이없어 확인해봐");
+    }  
+
     for (int i = 0; i < LandDictionary.Keys.Count; i++)
     {
       CityType cityType = LandDictionary.Keys.ElementAt(i);
@@ -291,6 +263,9 @@ public class SceneGenerateTool : MonoBehaviour
       string sceneName = $"{this.scenePath}Scene_Land_{cityType}.unity";
 
       Debug.Log(sceneName + "생성 중");
+
+      //씬을 미리 생성해둬야 NavMeshBake Data가 해당 폴더에 정상적으로 들어감
+      EditorSceneManager.SaveScene(newScene, sceneName);
 
       //파일이 존재하면 삭제
       if (File.Exists(sceneName))
@@ -305,8 +280,14 @@ public class SceneGenerateTool : MonoBehaviour
         if (string.IsNullOrEmpty(landData.land_model))
           continue;
 
+        //프리팹 경로 없는것 찾아서 Log띄워주는 Dictionary
         if (!PrefabPathDictionary.ContainsKey(landData.land_model))
+        {
+          if(!EmptyPathList.ContainsKey(landData.land_model))
+            EmptyPathList.Add(landData.land_model, (landData.index, landData.Land_Code));
           continue;
+        }
+          
 
         EditorUtility.DisplayProgressBar(
           $"랜드를 구성중입니다 {i + 1}/{LandDictionary.Count}",
@@ -318,7 +299,8 @@ public class SceneGenerateTool : MonoBehaviour
         //Debug.LogError($"{createdObject != null} \n {JsonConvert.SerializeObject(landData)}");
 
         //await UniTask.WaitUntil(() => createdObject != null);
-        
+
+        createdObject.name += $" {landData.index} : ({(landData.CoordiStartX + landData.CoordiEndX) * 0.5f},{(landData.CoordiStartY + landData.CoordiEndY) * 0.5f})";
         createdObject.transform.SetPositionAndRotation(
           CalculationCoordinate(landData), 
           Quaternion.Euler(0f, (landData.land_rotation - 1) * -90, 0f)
@@ -326,50 +308,74 @@ public class SceneGenerateTool : MonoBehaviour
 
       }
 
-      this.SetCamera(cityType);
+      #region NavMeshBake
+      EditorUtility.ClearProgressBar();
 
-      if (this.option.HasFlag(Option.MeshBake))
+      GameObject navMeshBaker = PrefabUtility.InstantiatePrefab(this.dataMap.NavMeshBaker) as GameObject;
+
+      navMeshBaker.transform.SetAsLastSibling();
+
+      NavMeshBakerTool navMeshBakerTool = navMeshBaker.GetComponent<NavMeshBakerTool>();
+
+      EditorUtility.DisplayProgressBar(
+        $"NavMeshBake",
+        $"NavMeshBaking...",
+        1f
+      );
+
+      await navMeshBakerTool.ExcuteNavMeshBake();
+
+      this.SetCamera(navMeshBakerTool.GetCenterPos());
+      #endregion
+
+      #region MeshBake
+      if (this.meshBakeType != MeshBakeType.None)
       {
         EditorUtility.ClearProgressBar();
 
         EditorUtility.DisplayProgressBar(
-          $"랜드를 굽는중입니다 {i + 1}/{LandDictionary.Count}",
-          $"열심히 빵 만드는중...",
+          $"Mesh를 하나로 만드는 중입니다 {i + 1}/{LandDictionary.Count}",
+          $"MeshBaking...",
           1f
         );
 
-        this.SetMeshBake(bundleMap.transform);
-      }
+        this.SetMeshBake(bundleMap.transform, meshBakeType);
 
+        await UniTask.Delay(5000);
+      }
+      #endregion
+
+      //최종 작업 이후 저장
       EditorSceneManager.SaveScene(newScene, sceneName);
 
       EditorUtility.ClearProgressBar();
 
-      
+    }
+
+    foreach (var emptyPath in EmptyPathList)
+    {
+      Debug.LogError($"프리팹 = {emptyPath.Key} 가 없습니다.");
     }
 
     EditorUtility.DisplayDialog("작업 완료", "랜드 구성이 완료되었습니다.", "확인");
-
   }
   
-  private void SetCamera(CityType cityType)
+  private void SetCamera(Vector3 position)
   {
     Camera cam = Camera.main;
 
     if (cam)
     {
-      MetaCityData metaCityData = this.dataMap.GetMetaCityData(cityType);
-
-      cam.transform.SetPositionAndRotation(metaCityData.cameraData.position, Quaternion.Euler(metaCityData.cameraData.rotation));
+      cam.transform.SetPositionAndRotation(new Vector3(position.x, position.y + 3000f, position.z), Quaternion.Euler(90f, 0f, 0f));
 
       cam.farClipPlane = 10000f;
 
     }
   }
 
-  private void SetMeshBake(Transform bundleMap)
+  private void SetMeshBake(Transform bundleMap, MeshBakeType meshBakeType)
   {
-    MeshBakerTool.MeshBaker(this.dataMap.meshBaker, bundleMap, this.meshBakeType);
+    MeshBakerTool.MeshBaker(this.dataMap.meshBaker, bundleMap, meshBakeType);
 
   }
 
@@ -389,4 +395,11 @@ public class SceneGenerateTool : MonoBehaviour
 
     return new Vector3(coord_x, 0f, coord_y) * 24;
   }
+
+  [ContextMenu("DisableWindow")]
+  private void DisableWindow()
+  {
+    EditorUtility.ClearProgressBar();
+  }
+
 }
